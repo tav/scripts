@@ -1,0 +1,11 @@
+*.dylib
+*.lo
+*.la
+*.pyc
+*.o
+*.so
+.articlestore
+.DS_Store
+.latest
+.sconsign*
+.svn
