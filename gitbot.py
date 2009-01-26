@@ -291,17 +291,20 @@ def check_github_and_update(gitbot, quiet=False, with_url=WITHURL):
             # the message
 
             if with_url:
-               text = '%s by [%s]' % (VIEWURL % shortcommit, author)
+                text = '%s by [%s]' % (VIEWURL % shortcommit, author)
+                if number_of_dirs > 1:
+                    text += ' in %i subdirs of %s' % (number_of_dirs, subdir)
+                else:
+                    text += ' in %s' % subdir
             else:
-               if author == user:
-                  text = '[%s@%s]' % (author, reponame)
-               else:
-                  text = '[%s@%s/%s]' % (author, user, reponame)
-
-            if number_of_dirs > 1:
-                text += ' in %i subdirs of %s' % (number_of_dirs, subdir)
-            else:
-                text += ' in %s' % subdir
+                if subdir.startswith('/'):
+                    subdir = subdir[1:]
+                if number_of_dirs > 1:
+                    text = '%s in %i subdirs of %s/%s/%s' % (
+                        author, number_of_dirs, user, reponame, subdir
+                        )
+                else:
+                    text = '%s in %s/%s/%s' % (author, user, reponame, subdir)
 
             if message.endswith('.'):
                 message = message[:-1]
