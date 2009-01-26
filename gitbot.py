@@ -311,7 +311,7 @@ def check_github_and_update(gitbot, quiet=False):
                 ellipsed = False
 
             for file in files:
-                if (msglen + len(file) + 5) > 480:
+                if (msglen + len(file) + 6) > 433:
                     ellipsed = True
                     break
                 msglen += len(file) + 2
