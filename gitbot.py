@@ -28,6 +28,8 @@ SERVER_PORT = 8000
 
 GITHUB_DATA = {}
 
+WITHURL = False # set this to True if you want urls in the irc message
+
 TINYURL = 'http://tinyurl.com/create.php?alias=github-%s&url=%s'
 VIEWURL = 'http://tinyurl.com/github-%s'
 
@@ -200,7 +202,7 @@ class Bot(asynchat.async_chat):
 # utility funktion for querying github
 # ------------------------------------------------------------------------------
 
-def check_github_and_update(gitbot, quiet=False):
+def check_github_and_update(gitbot, quiet=False, with_url=WITHURL):
     """Check GitHub for new commits and message the IRC channels about it."""
 
     event = None
@@ -287,7 +289,14 @@ def check_github_and_update(gitbot, quiet=False):
                     change_log.append('%i %s' % (len(changeset), flagtext))
 
             # the message
-            text = '%s by [%s]' % (VIEWURL % shortcommit, author)
+
+            if with_url:
+               text = '%s by [%s]' % (VIEWURL % shortcommit, author)
+            else:
+               if author == user:
+                  text = '[%s@%s]' % (author, reponame)
+               else:
+                  text = '[%s@%s/%s]' % (author, user, reponame)
 
             if number_of_dirs > 1:
                 text += ' in %i subdirs of %s' % (number_of_dirs, subdir)
@@ -321,7 +330,8 @@ def check_github_and_update(gitbot, quiet=False):
             if ellipsed:
                 text += ' ...'
 
-            urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
+            if with_url:
+               urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
 
             for channel in channels:
                 gitbot.msg(channel, text)
