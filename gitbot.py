@@ -28,7 +28,8 @@ SERVER_PORT = 8000
 
 GITHUB_DATA = {}
 
-WITHURL = False # set this to True if you want urls in the irc message
+WITH_URL = True # set this if you want urls in the irc message
+WITH_FILES = False # set this if you want a file listing in the irc message
 
 TINYURL = 'http://tinyurl.com/create.php?alias=github-%s&url=%s'
 VIEWURL = 'http://tinyurl.com/github-%s'
@@ -202,10 +203,11 @@ class Bot(asynchat.async_chat):
 # utility funktion for querying github
 # ------------------------------------------------------------------------------
 
-def check_github_and_update(gitbot, quiet=False, with_url=WITHURL):
+def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
     """Check GitHub for new commits and message the IRC channels about it."""
 
     event = None
+    quiet = False
 
     reload(gitbotconfig)
     repositories = gitbotconfig.REPOSITORIES
@@ -274,64 +276,63 @@ def check_github_and_update(gitbot, quiet=False, with_url=WITHURL):
                     if not subdir.startswith('/'):
                         subdir = '/' + subdir
 
-            if not subdir[-1:] == '/':
-                subdir = subdir[1:] + '/'
+            if not subdir.endswith('/'):
+                subdir = subdir + '/'
 
-            files = []; append_file = files.append
-            change_log = []
+            if subdir == '/':
+                subdir = ''
 
-            for changeset, flag, flagtext in (
-                (added, 'A', 'added'), (modified, 'U', 'changed'), (removed, 'D', 'removed')
-                ):
-                for file in changeset:
-                    append_file('%s (%s)' % (file[1], flag))
-                if changeset:
-                    change_log.append('%i %s' % (len(changeset), flagtext))
+            if with_files:
+
+                files = []; append_file = files.append
+                change_log = []
+
+                for changeset, flag, flagtext in (
+                    (added, 'A', 'added'), (modified, 'U', 'changed'), (removed, 'D', 'removed')
+                    ):
+                    for file in changeset:
+                        append_file('%s (%s)' % (file[1], flag))
+                    if changeset:
+                        change_log.append('%i %s' % (len(changeset), flagtext))
 
             # the message
 
             if with_url:
                 text = '%s by [%s]' % (VIEWURL % shortcommit, author)
-                if number_of_dirs > 1:
-                    text += ' in %i subdirs of %s' % (number_of_dirs, subdir)
-                else:
-                    text += ' in %s' % subdir
             else:
-                if subdir.startswith('/'):
-                    subdir = subdir[1:]
-                if number_of_dirs > 1:
-                    text = '%s in %i subdirs of %s/%s/%s' % (
-                        author, number_of_dirs, user, reponame, subdir
-                        )
-                else:
-                    text = '%s in %s/%s/%s' % (author, user, reponame, subdir)
+               text = author
+
+            if number_of_dirs > 1:
+                text = ' in %i subdirs of %s/%s/%s' % (
+                    number_of_dirs, user, reponame, subdir
+                    )
+            else:
+                text = ' in %s.%s/%s' % (user, reponame, subdir)
 
             if message.endswith('.'):
                 message = message[:-1]
             text += ' -- %s' % message
 
             if change_log:
-                text += ' -- [%s] -- ' % ', '.join(change_log)
-                changed = ''
-            else:
-                changed = ' -- '
+                text += ' -- [%s]' % ', '.join(change_log)
 
-            if files:
+            if with_files and files:
 
+                msg += ' -- '
                 msglen = len(text)
                 extra = []
                 ellipsed = False
 
-            for file in files:
-                if (msglen + len(file) + 6) > 433:
-                    ellipsed = True
-                    break
-                msglen += len(file) + 2
-                extra.append(file)
+                for file in files:
+                    if (msglen + len(file) + 6) > 433:
+                        ellipsed = True
+                        break
+                    msglen += len(file) + 2
+                    extra.append(file)
 
-            text += changed + ', '.join(extra)
-            if ellipsed:
-                text += ' ...'
+                text += ', '.join(extra)
+                if ellipsed:
+                    text += ' ...'
 
             if with_url:
                urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
