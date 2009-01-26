@@ -203,6 +203,8 @@ class Bot(asynchat.async_chat):
 def check_github_and_update(gitbot, quiet=False):
     """Check GitHub for new commits and message the IRC channels about it."""
 
+    event = None
+
     reload(gitbotconfig)
     repositories = gitbotconfig.REPOSITORIES
 
@@ -230,6 +232,7 @@ def check_github_and_update(gitbot, quiet=False):
             commit_id = commit['id']
             if commit_id not in seen:
                 unseen.add(commit_id)
+                event = 1
             seen.add(commit_id)
 
         if quiet:
@@ -324,6 +327,9 @@ def check_github_and_update(gitbot, quiet=False):
                 gitbot.msg(channel, text)
 
     LAST_UPDATED = time.time()
+
+    if event:
+       open('.update', 'wb').close()
 
 # ------------------------------------------------------------------------------
 # gitbot!
