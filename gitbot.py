@@ -279,8 +279,8 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
             if not subdir.endswith('/'):
                 subdir = subdir + '/'
 
-            if subdir == '/':
-                subdir = ''
+            if not subdir.startswith('/'):
+                subdir = '/' + subdir
 
             if with_files:
 
@@ -310,14 +310,14 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
             if with_url:
                 text = '%s by [%s]' % (VIEWURL % shortcommit, author)
             else:
-               text = author
+                text = author
 
             if number_of_dirs > 1:
-                text = ' in %i subdirs of %s/%s/%s' % (
+                text += ' in %i subdirs of %s.%s%s' % (
                     number_of_dirs, user, reponame, subdir
                     )
             else:
-                text = ' in %s.%s/%s' % (user, reponame, subdir)
+                text += ' in %s.%s%s' % (user, reponame, subdir)
 
             if message.endswith('.'):
                 message = message[:-1]
@@ -345,7 +345,7 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
                     text += ' ...'
 
             if with_url:
-               urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
+                urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
 
             for channel in channels:
                 gitbot.msg(channel, text)
