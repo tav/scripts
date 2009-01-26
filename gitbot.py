@@ -295,6 +295,16 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
                     if changeset:
                         change_log.append('%i %s' % (len(changeset), flagtext))
 
+            else:
+
+                change_log = []
+
+                for changeset, flagtext in (
+                    (added, 'added'), (modified, 'changed'), (removed, 'removed')
+                    ):
+                    if changeset:
+                        change_log.append('%i %s' % (len(changeset), flagtext))
+
             # the message
 
             if with_url:
