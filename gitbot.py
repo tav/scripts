@@ -240,7 +240,7 @@ def check_github_and_update(gitbot, quiet=False):
 
         for commit_id in unseen:
 
-            shortcommit = commit_id[:6]
+            shortcommit = commit_id[:8]
 
             commit_data = simplejson.loads(urlopen(
                 'http://github.com/api/v1/json/%s/%s/commit/%s' % (user, reponame, commit_id)
