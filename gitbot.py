@@ -33,6 +33,13 @@ WITH_FILES = False # set this if you want a file listing in the irc message
 
 TINYURL = 'http://tinyurl.com/create.php?alias=github-%s&url=%s'
 VIEWURL = 'http://tinyurl.com/github-%s'
+ALIAS_SUPPORT = True
+TINYURL_RETURN = False
+
+TINYURL = 'http://is.gd/api.php?longurl=%s'
+VIEWURL = 'http://is.gd/%s'
+ALIAS_SUPPORT = False
+TINYURL_RETURN = True
 
 # ------------------------------------------------------------------------------
 # irc.py from http://inamidst.com/phenny/
@@ -308,7 +315,15 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
             # the message
 
             if with_url:
-                text = '%s by [%s]' % (VIEWURL % shortcommit, author)
+                if ALIAS_SUPPORT:
+                    returl = urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
+                else:
+                    returl = urlopen(TINYURL % urlquote(commiturl)).read()
+                if TINYURL_RETURN:
+                    viewurl = returl.strip()
+                else:
+                    viewurl = VIEWURL % shortcommit
+                text = '%s by [%s]' % (viewurl, author)
             else:
                 text = author
 
@@ -343,9 +358,6 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
                 text += ', '.join(extra)
                 if ellipsed:
                     text += ' ...'
-
-            if with_url:
-                urlopen(TINYURL % (shortcommit, urlquote(commiturl))).read()
 
             for channel in channels:
                 gitbot.msg(channel, text)
