@@ -1,0 +1,7 @@
+[user]
+	email = tav@espians.com
+	name = tav
+[color]
+	diff = auto
+	status = auto
+	branch = auto
