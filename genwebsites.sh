@@ -21,64 +21,37 @@ if [ ! "$PLEXNET_INSTALLED" ]; then
 fi
 
 AUTHORS=$PLEXNET_ROOT/documentation/CREDITS.txt
+OLDDATE=`head -1 $PLEXNET_ROOT/.gendate`
+CURDATE=`date +%Y-%m-%d`
 
-mkdir -p $WWW_DIRECTORY/tav.espians.com/htdocs
-mkdir -p $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs
-mkdir -p $WWW_DIRECTORY/blog.turnupthecourage.com/htdocs
-mkdir -p $WWW_DIRECTORY/www.plexnet.org/htdocs
+_gen_website() {
+  SOURCE_PATH=$1
+  SITE_DOMAIN=$2
+  cd $SOURCE_PATH
+  git pull origin master
+  if [ "A$CURDATE" = "A${OLDDATE%\n}" ]; then
+   echo ""
+  else
+    yatiblog $SOURCE_PATH --authors=$AUTHORS --clean
+  fi
+  if [ "None$3" = "None" ]; then
+    yatiblog $SOURCE_PATH --authors=$AUTHORS
+  else
+    yatiblog $SOURCE_PATH --authors=$AUTHORS --package=$3
+  fi
+  mkdir -p $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
+  mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
+  mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
+  cp -r $WWW_DIRECTORY/$SITE_DOMAIN/htdocs website
+  rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
+}
 
-# tav.espians.com | www.beyondthecrunch.com
-
-SITE_DOMAIN=tav.espians.com
-
-cd $SILO_ROOT_DIRECTORY/blog
-git pull origin master
-
-yatiblog $SILO_ROOT_DIRECTORY/blog --authors=$AUTHORS
-
-mv $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs $WWW_DIRECTORY/www.beyondthecrunch.com/old
-mv website/beyondthecrunch.com $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs
-rm -rf $WWW_DIRECTORY/www.beyondthecrunch.com/old
-
-mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
-mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
-rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
-
-git reset --hard HEAD
-
-# blog.turnupthecourage.com
-
-SITE_DOMAIN=blog.turnupthecourage.com
-
-cd $SILO_ROOT_DIRECTORY/sofia-blog
-git pull origin master
-
-yatiblog $SILO_ROOT_DIRECTORY/sofia-blog --authors=$AUTHORS
-
-mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
-mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
-rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
-
-git reset --hard HEAD
-
-# www.plexnet.org
-
-SITE_DOMAIN=www.plexnet.org
-
-cd $PLEXNET_ROOT
-git pull origin master
-
-yatiblog $PLEXNET_ROOT/documentation --authors=$AUTHORS
-yatiblog $PLEXNET_ROOT/documentation --authors=$AUTHORS --package=plexnet
-
-mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
-mv documentation/website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
-rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
-
-git reset --hard HEAD
-
-# release.plexnet.org
+_gen_website "$SILO_ROOT_DIRECTORY/blog" "tav.espians.com"
+_gen_website "$SILO_ROOT_DIRECTORY/sofia-blog" "blog.turnupthecourage.com"
+_gen_website "$SILO_ROOT_DIRECTORY/beyondthecrunch" "www.beyondthecrunch.com"
+_gen_website "$PLEXNET_ROOT/documentation" "www.plexnet.org" "plexnet"
 
 cd $WWW_DIRECTORY/release.plexnet.org/htdocs
 git pull origin master
 
+echo $CURDATE > $PLEXNET_ROOT/.gendate
