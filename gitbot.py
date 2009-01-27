@@ -253,9 +253,24 @@ def check_github_and_update(gitbot, with_url=WITH_URL, with_files=WITH_FILES):
 
             shortcommit = commit_id[:8]
 
-            commit_data = simplejson.loads(urlopen(
-                'http://github.com/api/v1/json/%s/%s/commit/%s' % (user, reponame, commit_id)
-                ).read())['commit']
+            failed = True
+            retry = 3
+
+            while retry:
+                try:
+                    commit_data = simplejson.loads(urlopen(
+                        'http://github.com/api/v1/json/%s/%s/commit/%s' % (user, reponame, commit_id)
+                        ).read())['commit']
+                except:
+                    retry = retry - 1
+                    time.sleep(2)
+                else:
+                    retry = 0
+                    failed = False
+
+            if failed:
+                seen.remove(commit_id)
+                continue
 
             author = commit_data['committer']['name']
             added = [split_path(file['filename']) for file in commit_data['added']]
