@@ -20,16 +20,21 @@ if [ ! "$PLEXNET_INSTALLED" ]; then
     source $PLEXNET_ROOT/environ/startup/plexnetenv.sh
 fi
 
-exit
+AUTHORS=$PLEXNET_ROOT/documentation/CREDITS.txt
+
+mkdir -p $WWW_DIRECTORY/tav.espians.com/htdocs
+mkdir -p $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs
+mkdir -p $WWW_DIRECTORY/blog.turnupthecourage.com/htdocs
+mkdir -p $WWW_DIRECTORY/www.plexnet.org/htdocs
 
 # tav.espians.com | www.beyondthecrunch.com
 
 SITE_DOMAIN=tav.espians.com
 
 cd $SILO_ROOT_DIRECTORY/blog
-git reset --hard HEAD
-git pull
-yatiblog .
+git pull origin master
+
+yatiblog $SILO_ROOT_DIRECTORY/blog --authors=$AUTHORS
 
 mv $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs $WWW_DIRECTORY/www.beyondthecrunch.com/old
 mv website/beyondthecrunch.com $WWW_DIRECTORY/www.beyondthecrunch.com/htdocs
@@ -39,35 +44,41 @@ mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
 mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
 rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
 
+git reset --hard HEAD
+
 # blog.turnupthecourage.com
 
 SITE_DOMAIN=blog.turnupthecourage.com
 
 cd $SILO_ROOT_DIRECTORY/sofia-blog
-git reset --hard HEAD
-git pull
-yatiblog .
+git pull origin master
+
+yatiblog $SILO_ROOT_DIRECTORY/sofia-blog --authors=$AUTHORS
 
 mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
 mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
 rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
+
+git reset --hard HEAD
 
 # www.plexnet.org
 
 SITE_DOMAIN=www.plexnet.org
 
 cd $PLEXNET_ROOT
-git reset --hard HEAD
-git pull
-cd $PLEXNET_ROOT/documentation
-yatiblog .
+git pull origin master
+
+yatiblog $PLEXNET_ROOT/documentation --authors=$AUTHORS
+yatiblog $PLEXNET_ROOT/documentation --authors=$AUTHORS --package=plexnet
 
 mv $WWW_DIRECTORY/$SITE_DOMAIN/htdocs $WWW_DIRECTORY/$SITE_DOMAIN/old
-mv website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
+mv documentation/website $WWW_DIRECTORY/$SITE_DOMAIN/htdocs
 rm -rf $WWW_DIRECTORY/$SITE_DOMAIN/old
+
+git reset --hard HEAD
 
 # release.plexnet.org
 
-cd $WWW_DIRECTORY/release.plexnet.org
-git reset --hard HEAD
-git pull
+cd $WWW_DIRECTORY/release.plexnet.org/htdocs
+git pull origin master
+
