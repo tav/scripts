@@ -1,0 +1,97 @@
+#! /bin/sh
+
+# ------------------------------------------------------------------------------
+# .bashrc by <tav@espians.com>
+# ------------------------------------------------------------------------------
+
+# include the user's local bin on the PATH if it exists
+if [ -d ~/.local/bin ] ; then
+    PATH=~/.local/bin:"${PATH}"
+fi
+
+# enable bash completion if available
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+fi
+
+# only search directories on cd tab completion
+complete -d cd
+
+# ignore case with tab completion
+set completion-ignore-case On
+
+# disable > cloberring. use |> to override
+set -o noclobber
+
+# aliases
+alias brc='vim ~/.bashrc && source ~/.bashrc'
+alias cdb='cd ~/silo/blog'
+alias cdc='cd xavier/code'
+alias cdd='cd ~/Downloads'
+alias cdj='cd ~/work/source/jsutil'
+alias cdl='cd ~/life'
+alias cdp='cd ~/work/source/plexnet'
+alias cdpp='cd xavier/code/pypy/dist/pypy'
+alias cds='cd ~/silo'
+alias cdw='cd ~/work'
+alias cd-='cd -'
+alias chx='chmod +x'
+alias em='/Applications/Aquamacs\ Emacs.app/Contents/MacOS/bin/emacsclient -n'
+alias emnew='em /Users/tav/work/documentation/asktav/new.txt'
+alias github='git push origin master'
+alias gitpages='git push origin gh-pages'
+alias ipython='ipython -nobanner'
+alias ipy='ipython2.6 -nobanner'
+alias l='ls -G'
+alias la='ls -a'
+alias lk='security lock-keychain'
+alias ll='ls -al'
+alias manlinux='export MANPATH=~/xavier/code/libevent/doc/linux-man-pages-2.68 ; man'
+alias manbsd='export MANPATH=~/xavier/code/libevent/doc/freebsd-man-pages-6.2 ; man'
+alias manosx='export MANPATH=""; man'
+alias mkee='mkdir doc svn release temp'
+alias p='cd ..'
+alias pp='cd ../..'
+alias ppp='cd ../../..'
+alias pppp='cd ../../../..'
+alias sl='ls'
+alias resetcolour='/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/CoreGraphics.framework/Versions/A/Resources/DMProxy'
+alias rmrf='rm -rf'
+alias rmsvn='rm -rf .svn; rm -rf */.svn; rm -rf */*/.svn; rm -rf */*/*/.svn; rm -rf */*/*/*/.svn'
+alias screen='screen -e^Ff'
+alias svnchange='svn status | grep -v "^[?XP]" | grep -v "^$"'
+alias svnstatus='svn status"'
+alias untar='tar xzvf'
+alias vi='vim'
+alias xterm="xterm -bg black -fg white -en UTF-8"
+
+# yatiblog aliases
+alias sitetav='yatiblog /Users/tav/silo/blog --authors=~/work/documentation/CREDITS.txt'
+alias sitesofia='yatiblog /Users/tav/silo/sofia-blog --authors=~/work/documentation/CREDITS.txt'
+alias siteplexnet='yatiblog /Users/tav/work/documentation --authors=~/work/documentation/CREDITS.txt --package=plexnet'
+
+# environment variables
+export CLICOLOR=1
+export HISTCONTROL=ignoreboth
+
+export LSCOLORS="no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.bat=01;32:*.BAT=01;32:*.btm=01;32:*.BTM=01;32:*.cmd=01;32:*.CMD=01;32:*.com=01;32:*.COM=01;32:*.dll=01;32:*.DLL=01;32:*.exe=01;32:*.EXE=01;32:*.arj=01;31:*.bz2=01;31:*.deb=01;31:*.gz=01;31:*.lzh=01;31:*.rar=01;31:*.RAR=01;31:*.rpm=01;31:*.tar=01;31:*.taz=01;31:*.tb2=01;31:*.tbz2=01;31:*.tbz=01;31:*.tgz=01;31:*.tz2=01;31:*.z=01;31:*.Z=01;31:*.zip=01;31:*.ZIP=01;31:*.zoo=01;31:*.asf=01;35:*.ASF=01;35:*.avi=01;35:*.AVI=01;35:*.bmp=01;35:*.BMP=01;35:*.flac=01;35:*.FLAC=01;35:*.gif=01;35:*.GIF=01;35:*.jpg=01;35:*.JPG=01;35:*.jpeg=01;35:*.JPEG=01;35:*.m2a=01;35:*.M2A=01;35:*.m2v=01;35:*.M2V=01;35:*.m4a=01;35:*.M4A=01;35:*.m4p=01;35:*.M4P=01;35:*.m4v=01;35:*.M4V=01;35:*.mov=01;35:*.MOV=01;35:*.mp3=01;35:*.MP3=01;35:*.mpc=01;35:*.MPC=01;35:*.mpeg=01;35:*.MPEG=01;35:*.mpg=01;35:*.MPG=01;35:*.ogg=01;35:*.OGG=01;35:*.pbm=01;35:*.pgm=01;35:*.png=01;35:*.PNG=01;35:*.ppm=01;35:*.rm=01;35:*.RM=01;35:*.tga=01;35:*.TGA=01;35:*.tif=01;35:*.TIF=01;35:*.tiff=01;35:*.TIFF=01;35:*.wav=01;35:*.WAV=01;35:*.wma=01;35:*.WMA=01;35:*.wmv=01;35:*.WMV=01;35:*.xbm=01;35:*.xcf=01;35:*.xpm=01;35:*.xwd=01;35:*.XWD=01;35:"
+
+export LSCOLORS=ExFxCxDxBxegedabagacad
+export LSCOLORS=GxCxCxDxBxegedabagacad
+export LSCOLORS=GxBxExDxCxegedabagacad
+
+# http://www.macosxhints.com/article.php?story=20031025162727485
+
+export PATH=~/.local/bin:/Users/tav/silo/scripts:$PATH
+export EDITOR=nano
+export PYTHONPATH=~/.local/py-packages
+export PYTHONSTARTUP=~/.pythonrc
+
+# some notes relating to bash from the wise deltab
+# <deltab> red=$'\e[31m' green=$'\e[32m' bold=$'\e[1m'  etc.
+# <deltab> then you can use $bold$red etc.
+# <deltab> normal=$'\e[m'
+# <deltab> you can use ${red}woohoo!${normal} to avoid spaces
+
+export PLEXNET_ROOT="/Users/tav/work"
+source $PLEXNET_ROOT/environ/startup/plexnetenv.sh install
