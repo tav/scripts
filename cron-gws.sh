@@ -3,6 +3,6 @@
 while true; do
 
   ./genwebsites.sh;
-  sleep 30;
+  sleep 5;
 
 done
