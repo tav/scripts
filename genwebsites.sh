@@ -28,10 +28,14 @@ _gen_website() {
   SOURCE_PATH=$1
   SITE_DOMAIN=$2
   cd $SOURCE_PATH
-  git pull origin master
-  if [ "A$CURDATE" = "A${OLDDATE%\n}" ]; then
-   echo ""
-  else
+  ERROR_PULLING_FROM_GITHUB="true"
+  git pull origin master && ERROR_PULLING_FROM_GITHUB="false"
+  if [ "$ERROR_PULLING_FROM_GITHUB" = "true" ]; then
+    touch .update
+    echo "Error pulling from GitHub for: $SOURCE_PATH"
+    return 1
+  fi
+  if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS --clean
   fi
   if [ "None$3" = "None" ]; then
