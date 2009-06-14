@@ -482,7 +482,10 @@ def _poll_dev_server(bot, origin, event, args, bytes):
     check_commitlogs(bot)
 
 
-def check_commitlogs(bot, with_url=WITH_URL, with_files=WITH_FILES):
+def check_commitlogs(
+    bot, with_url=WITH_URL, with_files=WITH_FILES,
+    show_private_urls=SHOW_PRIVATE_URLS
+    ):
     """Check the commit logs and message the IRC channels about it."""
 
     for repo, log in sorted(COMMITLOGS.items(), key=lambda x: x[1]['timestamp']):
@@ -497,7 +500,7 @@ def check_commitlogs(bot, with_url=WITH_URL, with_files=WITH_FILES):
 
     ref = None
 
-    if (not commit['private']) and with_url:
+    if ((not commit['private']) or show_private_urls) and with_url:
         try:
             ref = urlopen(TINYURL % urlquote(commit['url'])).read().strip()
         except Exception:
