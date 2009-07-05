@@ -35,9 +35,9 @@ _gen_website() {
     echo "Error pulling from GitHub for: $SOURCE_PATH"
     return 1
   fi
-  # if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
+  if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS --clean
-  # fi
+  fi
   if [ "None$3" = "None" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS
   else
