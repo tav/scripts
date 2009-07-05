@@ -20,7 +20,7 @@ if [ ! "$PLEXNET_INSTALLED" ]; then
     source $PLEXNET_ROOT/environ/startup/plexnetenv.sh
 fi
 
-AUTHORS=$PLEXNET_ROOT/documentation/CREDITS.txt
+AUTHORS=$PLEXNET_ROOT/documentation/credits.txt
 OLDDATE=`head -1 $PLEXNET_ROOT/.gendate`
 CURDATE=`date +%Y-%m-%d`
 
@@ -29,7 +29,7 @@ _gen_website() {
   SITE_DOMAIN=$2
   cd $SOURCE_PATH
   ERROR_PULLING_FROM_GITHUB="true"
-  git pull origin master && ERROR_PULLING_FROM_GITHUB="false"
+  git pull origin master 2> /dev/null && ERROR_PULLING_FROM_GITHUB="false"
   if [ "$ERROR_PULLING_FROM_GITHUB" = "true" ]; then
     touch .update
     echo "Error pulling from GitHub for: $SOURCE_PATH"
@@ -58,6 +58,6 @@ _gen_website "$PLEXNET_ROOT/documentation/espians" "www.espians.com"
 # _gen_website "$PLEXNET_ROOT/documentation" "www.plexnet.org" "plexnet"
 
 cd $WWW_DIRECTORY/release.plexnet.org/htdocs
-git pull origin master
+git pull origin master 2> /dev/null
 
 echo $CURDATE > $PLEXNET_ROOT/.gendate
