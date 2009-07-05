@@ -35,9 +35,9 @@ _gen_website() {
     echo "Error pulling from GitHub for: $SOURCE_PATH"
     return 1
   fi
-  if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
+  # if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS --clean
-  fi
+  # fi
   if [ "None$3" = "None" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS
   else
@@ -51,9 +51,11 @@ _gen_website() {
 }
 
 _gen_website "$SILO_ROOT_DIRECTORY/blog" "tav.espians.com"
-_gen_website "$SILO_ROOT_DIRECTORY/sofia-blog" "blog.turnupthecourage.com"
-_gen_website "$SILO_ROOT_DIRECTORY/beyondthecrunch" "www.beyondthecrunch.com"
-_gen_website "$PLEXNET_ROOT/documentation" "www.plexnet.org" "plexnet"
+_gen_website "$SILO_ROOT_DIRECTORY/sofia-blog" "www.turnupthecourage.com"
+_gen_website "$PLEXNET_ROOT/documentation/espians" "www.espians.com"
+
+# _gen_website "$SILO_ROOT_DIRECTORY/beyondthecrunch" "www.beyondthecrunch.com"
+# _gen_website "$PLEXNET_ROOT/documentation" "www.plexnet.org" "plexnet"
 
 cd $WWW_DIRECTORY/release.plexnet.org/htdocs
 git pull origin master
