@@ -21,21 +21,29 @@ if [ ! "$PLEXNET_INSTALLED" ]; then
 fi
 
 AUTHORS=$PLEXNET_ROOT/documentation/credits.txt
-OLDDATE=`head -1 $PLEXNET_ROOT/.gendate`
-CURDATE=`date +%Y-%m-%d`
 
 _gen_website() {
   SOURCE_PATH=$1
   SITE_DOMAIN=$2
   cd $SOURCE_PATH
   ERROR_PULLING_FROM_GITHUB="true"
+  if [ -f .gendate ]; then
+    PREV_GEN=`head -1 .gendate`
+  else
+    PREV_GEN="None"
+  fi
   git pull origin master 2> /dev/null && ERROR_PULLING_FROM_GITHUB="false"
   if [ "$ERROR_PULLING_FROM_GITHUB" = "true" ]; then
     touch .update
     echo "Error pulling from GitHub for: $SOURCE_PATH"
     return 1
   fi
-  if [ ! "A$CURDATE" = "A${OLDDATE%\n}" ]; then
+  if [ -f .gendate ]; then
+    NEW_GEN=`head -1 .gendate`
+  else
+    NEW_GEN="None"
+  fi
+  if [ ! "A$PREV_GEN" = "A$NEW_GEN" ]; then
     yatiblog $SOURCE_PATH --authors=$AUTHORS --clean
   fi
   if [ "None$3" = "None" ]; then
@@ -59,5 +67,3 @@ _gen_website "$PLEXNET_ROOT/documentation/espians" "www.espians.com"
 
 cd $WWW_DIRECTORY/release.plexnet.org/htdocs
 git pull origin master 2> /dev/null
-
-echo $CURDATE > $PLEXNET_ROOT/.gendate
