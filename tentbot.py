@@ -478,38 +478,54 @@ def _handle_output(bot, origin, event, args, bytes):
     if event == 'PRIVMSG' and bytes.startswith('#'):
         return
 
-    if DEBUG:
+    created = time.time()
+    nick = origin.nick
+    channel = origin.sender
+    message = bytes
+    action = '0'
+    account = USER_ACCOUNTS.get(nick, '')
+
+    if DEBUG and (DEBUG != 2):
         print
         print "# %r %r %r" % (event, args, bytes)
         print "| %r %r %r %r" % (origin.nick, origin.user, origin.host, origin.sender)
         print
 
-    nick = origin.nick
-    channel = origin.sender
-    message = bytes
-    action = '0'
-
     if event == 'JOIN':
         CHANNEL_USERS.setdefault(bytes, set()).add(nick)
         channel = bytes
         message = ''
+
     elif event == 'NICK':
+        new_nick = message
+        USER_ACCOUNTS[new_nick] = USER_ACCOUNTS.pop(nick, None)
         channels = []
         for channel, users in CHANNEL_USERS.items():
             if nick in users:
                 channels.append(channel)
                 users.remove(nick)
-                users.add(message)
+                users.add(new_nick)
         channel = ' '.join(channels)
+
     elif event == 'PART':
         CHANNEL_USERS.setdefault(channel, set()).remove(nick)
+        still_connected = False
+        for users in CHANNEL_USERS.values():
+            if nick in users:
+                still_connected = True
+                break
+        if not still_connected:
+            USER_ACCOUNTS.pop(nick, 1)
+
     elif event == 'QUIT':
+        USER_ACCOUNTS.pop(nick, 1)
         channels = []
         for channel, users in CHANNEL_USERS.items():
             if nick in users:
                 channels.append(channel)
                 users.remove(nick)
         channel = ' '.join(channels)
+
     else:
         if not channel:
             return
@@ -535,7 +551,9 @@ def _handle_output(bot, origin, event, args, bytes):
         'event': event,
         'message': message,
         'key': TENT_SERVER_KEY,
-        'action': action
+        'action': action,
+        'created': created,
+        'account': account
         }
 
     if DEBUG:
@@ -547,6 +565,11 @@ def _handle_output(bot, origin, event, args, bytes):
         print "// %r" % CHANNEL_USERS
         print
 
+    if DEBUG == 2:
+        print
+        print "// %r" % USER_ACCOUNTS
+        print
+
     def push_to_tent_server():
         # print "Connecting to", "%s?%s" % (TENT_SERVER, urlencode(payload))
         x = urlopen(TENT_SERVER, urlencode(payload))
@@ -554,7 +577,14 @@ def _handle_output(bot, origin, event, args, bytes):
             print "##F"
             print "##", x.read()
 
-    SEND_QUEUE.put(push_to_tent_server, False)
+    if (event == 'PRIVMSG') and message.startswith('.') and not account:
+        def callback():
+            payload['account'] = USER_ACCOUNTS.get(nick, '')
+            SEND_QUEUE.put(push_to_tent_server, False)
+        WHOIS_QUEUES.setdefault(nick, []).append(callback)
+        bot.write(('WHOIS', '%s %s' % (nick, nick)))
+    else:
+        SEND_QUEUE.put(push_to_tent_server, False)
 
 def sender():
     pool = CoroutinePool(max_size=20)
@@ -578,7 +608,9 @@ DEBUG = 1
 
 INPUT_QUEUE = Queue()
 SEND_QUEUE = Queue()
+WHOIS_QUEUES = {}
 CHANNEL_USERS = {}
+USER_ACCOUNTS = {}
 
 RELEVANT_EVENTS = frozenset([
     'PRIVMSG',
@@ -637,6 +669,17 @@ class TentBot(Bot):
 
         if event in RELEVANT_EVENTS:
             handle_output(self, origin, event, args, bytes)
+
+        elif event == '320':
+            if 'is signed on as' in bytes:
+                whois = bytes.strip().split()
+                USER_ACCOUNTS[args[-1]] = bytes.split()[-1]
+
+        elif event == '318':
+            queue = WHOIS_QUEUES.get(args[-1], [])
+            for callback in queue:
+                callback()
+            queue[:] = []
 
         elif event == '353':
             channel = args[-1]
