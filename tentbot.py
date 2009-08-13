@@ -2,13 +2,20 @@
 
 """Tent IRC Bot."""
 
+# External Dependency: easy_install simplejson
+# External Dependency: easy_install eventlet
+
 import simplejson
 import traceback
 
 from posixpath import split as split_path
+from pprint import pprint
 from Queue import Queue
 from thread import allocate_lock, start_new_thread
-from urllib import urlopen, urlencode
+from urllib import urlencode
+
+from eventlet.pool import Pool as CoroutinePool
+from eventlet.green.urllib2 import urlopen
 
 from tentconfig import *
 
@@ -471,10 +478,11 @@ def _handle_output(bot, origin, event, args, bytes):
     if event == 'PRIVMSG' and bytes.startswith('#'):
         return
 
-    print
-    print "# %r %r %r" % (event, args, bytes)
-    print "| %r %r %r %r" % (origin.nick, origin.user, origin.host, origin.sender)
-    print
+    if DEBUG:
+        print
+        print "# %r %r %r" % (event, args, bytes)
+        print "| %r %r %r %r" % (origin.nick, origin.user, origin.host, origin.sender)
+        print
 
     nick = origin.nick
     channel = origin.sender
@@ -520,7 +528,7 @@ def _handle_output(bot, origin, event, args, bytes):
         message = ''.join(msglist)
 
     payload = {
-        'nick': origin.nick,
+        'nick': nick,
         'user': origin.user,
         'host': origin.host,
         'channel': channel,
@@ -530,19 +538,46 @@ def _handle_output(bot, origin, event, args, bytes):
         'action': action
         }
 
-    print
-    print "// %r" % CHANNEL_USERS
-    print
+    if DEBUG:
+        print "## Getting"
+        pprint(payload)
 
-    x = urlopen(TENT_SERVER, urlencode(payload))
-    print "##F"
-    print "##", x.read()
+    if DEBUG == 2:
+        print
+        print "// %r" % CHANNEL_USERS
+        print
+
+    def push_to_tent_server():
+        # print "Connecting to", "%s?%s" % (TENT_SERVER, urlencode(payload))
+        x = urlopen(TENT_SERVER, urlencode(payload))
+        if DEBUG:
+            print "##F"
+            print "##", x.read()
+
+    SEND_QUEUE.put(push_to_tent_server, False)
+
+def sender():
+    pool = CoroutinePool(max_size=20)
+    while 1:
+        while 1:
+            if SEND_QUEUE.empty():
+                break
+            pool.execute(SEND_QUEUE.get())
+        try:
+            pool.waitall()
+        except Exception:
+            traceback.print_exc()
+
+start_new_thread(sender, ())
 
 # ------------------------------------------------------------------------------
 # some global variables/konstants
 # ------------------------------------------------------------------------------
 
+DEBUG = 1
+
 INPUT_QUEUE = Queue()
+SEND_QUEUE = Queue()
 CHANNEL_USERS = {}
 
 RELEVANT_EVENTS = frozenset([
@@ -582,7 +617,7 @@ class TentBot(Bot):
 
         bytes, event, args = args[0], args[1], args[2:]
 
-        if 0 and (event != 'POKE'):
+        if (DEBUG == 2) and (event != 'POKE'):
             print "# %r %r %r" % (event, args, bytes)
             print "| %r %r %r %r" % (origin.nick, origin.user, origin.host, origin.sender)
 
@@ -618,8 +653,9 @@ class TentBot(Bot):
 
         elif event == '366':
             channel = args[-1]
-            print
-            print "----- CHANNEL", channel, CHANNEL_USERS[channel]
+            if DEBUG:
+                print
+                print "----- CHANNEL", channel, CHANNEL_USERS[channel]
 
         elif event == '251':
             print 'Joining channels:', self.channels
