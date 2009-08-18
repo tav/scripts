@@ -445,6 +445,40 @@ class Bot(asynchat.async_chat):
       except: self.msg(origin.sender, "Got an error.")
 
 # ------------------------------------------------------------------------------
+# some global variables/konstants
+# ------------------------------------------------------------------------------
+
+DEBUG = 1
+
+INPUT_QUEUE = Queue()
+SEND_QUEUE = Queue()
+WHOIS_QUEUES = {}
+WHOIS_REQUESTS = set()
+CHANNEL_USERS = {}
+USER_ACCOUNTS = {}
+
+RELEVANT_EVENTS = frozenset([
+    'PRIVMSG',
+    'JOIN',
+    'PART',
+    'TOPIC',
+    'NICK',
+    'QUIT'
+    ])
+
+# ------------------------------------------------------------------------------
+# fake origin
+# ------------------------------------------------------------------------------
+
+class FakeOrigin(object):
+
+    def __init__(self):
+        self.nick = 'pokebot'
+        self.user = 'imaginary'
+        self.host = 'neverland'
+        self.sender = ':pokebot'
+
+# ------------------------------------------------------------------------------
 # utility funktions
 # ------------------------------------------------------------------------------
 
@@ -466,6 +500,11 @@ def _handle_input_queue(bot, origin, event, args, bytes):
 
     if payload.get('update'):
         open('.update', 'wb').close()
+
+def whois(bot, nick):
+    if nick not in WHOIS_REQUESTS:
+        bot.write(('WHOIS', '%s %s' % (nick, nick)))
+        WHOIS_REQUESTS.add(nick)
 
 def handle_output(*args):
     try:
@@ -492,20 +531,22 @@ def _handle_output(bot, origin, event, args, bytes):
         print
 
     if event == 'JOIN':
+        if nick not in USER_ACCOUNTS:
+            whois(bot, nick)
         CHANNEL_USERS.setdefault(bytes, set()).add(nick)
         channel = bytes
         message = ''
 
     elif event == 'NICK':
         new_nick = message
-        USER_ACCOUNTS[new_nick] = USER_ACCOUNTS.pop(nick, None)
+        USER_ACCOUNTS[new_nick] = USER_ACCOUNTS.pop(nick, '')
         channels = []
         for channel, users in CHANNEL_USERS.items():
             if nick in users:
                 channels.append(channel)
                 users.remove(nick)
                 users.add(new_nick)
-        channel = ' '.join(channels)
+        channel = channels
 
     elif event == 'PART':
         CHANNEL_USERS.setdefault(channel, set()).remove(nick)
@@ -524,7 +565,7 @@ def _handle_output(bot, origin, event, args, bytes):
             if nick in users:
                 channels.append(channel)
                 users.remove(nick)
-        channel = ' '.join(channels)
+        channel = channels
 
     else:
         if not channel:
@@ -543,48 +584,55 @@ def _handle_output(bot, origin, event, args, bytes):
             add(char)
         message = ''.join(msglist)
 
-    payload = {
-        'nick': nick,
-        'user': origin.user,
-        'host': origin.host,
-        'channel': channel,
-        'event': event,
-        'message': message,
-        'key': TENT_SERVER_KEY,
-        'action': action,
-        'created': created,
-        'account': account
-        }
-
-    if DEBUG:
-        print "## Getting"
-        pprint(payload)
-
-    if DEBUG == 2:
-        print
-        print "// %r" % CHANNEL_USERS
-        print
-
-    if DEBUG == 2:
-        print
-        print "// %r" % USER_ACCOUNTS
-        print
-
-    def push_to_tent_server():
-        # print "Connecting to", "%s?%s" % (TENT_SERVER, urlencode(payload))
-        x = urlopen(TENT_SERVER, urlencode(payload))
-        if DEBUG:
-            print "##F"
-            print "##", x.read()
-
-    if (event == 'PRIVMSG') and message.startswith('.') and not account:
-        def callback():
-            payload['account'] = USER_ACCOUNTS.get(nick, '')
-            SEND_QUEUE.put(push_to_tent_server, False)
-        WHOIS_QUEUES.setdefault(nick, []).append(callback)
-        bot.write(('WHOIS', '%s %s' % (nick, nick)))
+    if isinstance(channel, list):
+        channels = channel
     else:
-        SEND_QUEUE.put(push_to_tent_server, False)
+        channels = [channel]
+
+    for channel in channels:
+
+        payload = {
+            'nick': nick,
+            'user': origin.user,
+            'host': origin.host,
+            'channel': channel,
+            'event': event,
+            'message': message,
+            'key': TENT_SERVER_KEY,
+            'action': action,
+            'created': created,
+            'account': account
+            }
+
+        if DEBUG:
+            print "## Getting"
+            pprint(payload)
+
+        if DEBUG == 2:
+            print
+            print "// %r" % CHANNEL_USERS
+            print
+
+        if DEBUG == 2:
+            print
+            print "// %r" % USER_ACCOUNTS
+            print
+
+        def push_to_tent_server():
+            # print "Connecting to", "%s?%s" % (TENT_SERVER, urlencode(payload))
+            x = urlopen(TENT_SERVER, urlencode(payload))
+            if DEBUG:
+                print "##F"
+                print "##", x.read()
+
+        if (event == 'PRIVMSG') and (message.startswith('.')  or message.startswith('!')) and not account:
+            def callback():
+                payload['account'] = USER_ACCOUNTS.get(nick, '')
+                SEND_QUEUE.put(push_to_tent_server, False)
+            WHOIS_QUEUES.setdefault(nick, []).append(callback)
+            whois(bot, nick)
+        else:
+            SEND_QUEUE.put(push_to_tent_server, False)
 
 def sender():
     pool = CoroutinePool(max_size=20)
@@ -599,39 +647,6 @@ def sender():
             traceback.print_exc()
 
 start_new_thread(sender, ())
-
-# ------------------------------------------------------------------------------
-# some global variables/konstants
-# ------------------------------------------------------------------------------
-
-DEBUG = 1
-
-INPUT_QUEUE = Queue()
-SEND_QUEUE = Queue()
-WHOIS_QUEUES = {}
-CHANNEL_USERS = {}
-USER_ACCOUNTS = {}
-
-RELEVANT_EVENTS = frozenset([
-    'PRIVMSG',
-    'JOIN',
-    'PART',
-    'TOPIC',
-    'NICK',
-    'QUIT'
-    ])
-
-# ------------------------------------------------------------------------------
-# fake origin
-# ------------------------------------------------------------------------------
-
-class FakeOrigin(object):
-
-    def __init__(self):
-        self.nick = 'pokebot'
-        self.user = 'imaginary'
-        self.host = 'neverland'
-        self.sender = ':pokebot'
 
 # ------------------------------------------------------------------------------
 # tent bot!
@@ -672,11 +687,13 @@ class TentBot(Bot):
 
         elif event == '320':
             if 'is signed on as' in bytes:
-                whois = bytes.strip().split()
                 USER_ACCOUNTS[args[-1]] = bytes.split()[-1]
 
         elif event == '318':
-            queue = WHOIS_QUEUES.get(args[-1], [])
+            nick = args[-1]
+            queue = WHOIS_QUEUES.get(nick, [])
+            if nick in WHOIS_REQUESTS:
+                WHOIS_REQUESTS.remove(nick)
             for callback in queue:
                 callback()
             queue[:] = []
@@ -696,6 +713,8 @@ class TentBot(Bot):
 
         elif event == '366':
             channel = args[-1]
+            for nick in CHANNEL_USERS[channel]:
+                whois(self, nick)
             if DEBUG:
                 print
                 print "----- CHANNEL", channel, CHANNEL_USERS[channel]
