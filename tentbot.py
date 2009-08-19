@@ -621,9 +621,12 @@ def _handle_output(bot, origin, event, args, bytes):
         def push_to_tent_server():
             # print "Connecting to", "%s?%s" % (TENT_SERVER, urlencode(payload))
             x = urlopen(TENT_SERVER, urlencode(payload))
+            retvalue = simplejson.loads(x.read())
+            if retvalue:
+                INPUT_QUEUE.put(retvalue, False)
             if DEBUG:
-                print "##F"
-                print "##", x.read()
+                print "## Returned Payload"
+                print "## %r" % retvalue
 
         if (event == 'PRIVMSG') and (message.startswith('.')  or message.startswith('!')) and not account:
             def callback():
