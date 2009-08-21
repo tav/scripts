@@ -652,6 +652,7 @@ def sender():
             pool.waitall()
         except Exception:
             traceback.print_exc()
+        time.sleep(0.2)
 
 start_new_thread(sender, ())
 
