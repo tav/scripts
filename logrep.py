@@ -158,6 +158,7 @@ for filename in files:
 
         if prune:
             get = get.split('?')[0]
+            get = get.split('#')[0]
             referer = referer.split('?')[0]
 
         if who:
