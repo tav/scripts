@@ -453,7 +453,7 @@ DEBUG = 1
 INPUT_QUEUE = Queue()
 SEND_QUEUE = Queue()
 WHOIS_QUEUES = {}
-WHOIS_REQUESTS = set()
+WHOIS_REQUESTS = {}
 CHANNEL_USERS = {}
 USER_ACCOUNTS = {}
 
@@ -506,9 +506,18 @@ def _handle_input_queue(bot, origin, event, args, bytes):
         open('.update', 'wb').close()
 
 def whois(bot, nick):
-    if nick not in WHOIS_REQUESTS:
-        bot.write(('WHOIS', '%s %s' % (nick, nick)))
-        WHOIS_REQUESTS.add(nick)
+
+    now = time.time()
+
+    if nick in WHOIS_REQUESTS and (now - WHOIS_REQUESTS.get(nick, 0)) < 30:
+        queue = WHOIS_QUEUES.get(nick, [])
+        for callback in queue:
+            callback()
+        queue[:] = []
+        return
+
+    bot.write(('WHOIS', '%s %s' % (nick, nick)))
+    WHOIS_REQUESTS[nick] = now
 
 def handle_output(*args):
     try:
@@ -701,7 +710,7 @@ class TentBot(Bot):
             nick = args[-1]
             queue = WHOIS_QUEUES.get(nick, [])
             if nick in WHOIS_REQUESTS:
-                WHOIS_REQUESTS.remove(nick)
+                del WHOIS_REQUESTS[nick]
             for callback in queue:
                 callback()
             queue[:] = []
