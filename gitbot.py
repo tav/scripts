@@ -5,6 +5,7 @@
 import simplejson
 import traceback
 
+from os.path import abspath, dirname, join as join_path
 from posixpath import split as split_path
 from Queue import Queue
 from thread import allocate_lock, start_new_thread
@@ -484,7 +485,8 @@ def _poll_dev_server(bot, origin, event, args, bytes):
 
 def check_commitlogs(
     bot, with_url=WITH_URL, with_files=WITH_FILES,
-    show_private_urls=SHOW_PRIVATE_URLS
+    show_private_urls=SHOW_PRIVATE_URLS,
+    update_file_path=join_path(dirname(abspath(__file__)), '.update')
     ):
     """Check the commit logs and message the IRC channels about it."""
 
@@ -606,7 +608,7 @@ def check_commitlogs(
     for channel in GITHUB_REPOSITORIES[repo]:
         bot.msg(channel, text[:433])
 
-    open('.update', 'wb').close()
+    open(update_file_path, 'wb').close()
 
 # ------------------------------------------------------------------------------
 # dev bot!

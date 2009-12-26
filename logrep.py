@@ -18,6 +18,8 @@ Logrep: Really Simple Apache Log Analysis Script
   -all                 Return all requests, not just those with status 200.
   --filter PATTERN     Return only requests which match the given pattern.
 
+e.g. ./logrep.py access.2009-11-2[5-6]* --vhost tav.espians.com -prune --filter "/ciao*" -where -total
+
 """
 
 import glob
@@ -27,7 +29,7 @@ import sys
 from collections import defaultdict
 from fnmatch import fnmatch
 
-__version__ = 2
+__version__ = 3
 
 # ------------------------------------------------------------------------------
 # configure these to suit your log format
@@ -100,6 +102,7 @@ all = get_flag(('-a', '-all'), False)
 ignore = get_flag('--ignore', default=[])
 vhost = get_flag('--vhost')
 filter = get_flag('--filter')
+where_filter = get_flag('--where-filter')
 file_base = get_flag('--filebase', default=FILE_BASE)
 
 if isinstance(ignore, str):
@@ -183,7 +186,9 @@ for filename in files:
             continue
 
         if where:
-            if filter and not fnmatch(referer, filter):
+            if filter and not fnmatch(get, filter):
+                continue
+            if where_filter and not fnmatch(referer, where_filter):
                 continue
             if total:
                 referers[referer] += 1
