@@ -7,6 +7,12 @@ else
     rm .update
 fi
 
+cd /home/tav/silo/ampify
+git pull origin master
+./environ/startup/yatiblog doc
+./environ/startup/yatiblog misc/www
+./environ/startup/yatiblog misc/blog
+
 SILO_ROOT_DIRECTORY=/home/tav/silo
 WWW_DIRECTORY=/var/www
 PLEXNET_ROOT=/home/tav/plexnet
@@ -59,11 +65,11 @@ _gen_website() {
 }
 
 _gen_website "$SILO_ROOT_DIRECTORY/blog" "tav.espians.com"
-_gen_website "$SILO_ROOT_DIRECTORY/sofia-blog" "www.turnupthecourage.com"
 _gen_website "$PLEXNET_ROOT/documentation/espians" "www.espians.com"
 
+# _gen_website "$SILO_ROOT_DIRECTORY/sofia-blog" "www.turnupthecourage.com"
 # _gen_website "$SILO_ROOT_DIRECTORY/beyondthecrunch" "www.beyondthecrunch.com"
 # _gen_website "$PLEXNET_ROOT/documentation" "www.plexnet.org" "plexnet"
 
-cd $WWW_DIRECTORY/release.plexnet.org/htdocs
-git pull origin master 2> /dev/null
+# cd $WWW_DIRECTORY/release.plexnet.org/htdocs
+# git pull origin master 2> /dev/null
