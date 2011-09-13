@@ -1,8 +1,13 @@
-#! /bin/sh
+# -------------------------------------------------------
+# .bashrc by <tav@espians.com> last updated on 2008/10/15
+# -------------------------------------------------------
 
-# ------------------------------------------------------------------------------
-# .bashrc by <tav@espians.com>
-# ------------------------------------------------------------------------------
+# user specific settings -- set WORK_DIRECTORY to enable related functionality
+export WORK_DIRECTORY=~/work
+
+if [ -d /usr/local/bin ] ; then
+    PATH=/usr/local/bin:"${PATH}"
+fi
 
 # include the user's local bin on the PATH if it exists
 if [ -d ~/.local/bin ] ; then
@@ -10,8 +15,8 @@ if [ -d ~/.local/bin ] ; then
 fi
 
 # enable bash completion if available
-if [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
+if [ -f ~/.local/etc/bash_completion ]; then
+    . ~/.local/etc/bash_completion
 fi
 
 # only search directories on cd tab completion
@@ -21,24 +26,32 @@ complete -d cd
 set completion-ignore-case On
 
 # disable > cloberring. use |> to override
-set -o noclobber
+# set -o noclobber
 
 # aliases
+
+alias ant='JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home /usr/bin/ant'
+alias current='source /Users/tav/silo/moad/virtualenvs/current/bin/activate'
+
 alias brc='vim ~/.bashrc && source ~/.bashrc'
-alias cdb='cd ~/silo/blog'
+alias cda='cd $WORK_DIRECTORY'
+alias cdb='cd $WORK_DIRECTORY/trunk/documentation/writing'
 alias cdc='cd xavier/code'
 alias cdd='cd ~/Downloads'
-alias cdj='cd ~/work/source/jsutil'
-alias cdl='cd ~/life'
-alias cdp='cd ~/work/source/plexnet'
-alias cdpp='cd xavier/code/pypy/dist/pypy'
-alias cds='cd ~/silo'
-alias cdw='cd ~/work'
+alias cdl='cd $WORK_DIRECTORY/life'
+alias cdk='cd ~/kalati'
+alias cdp='cd $WORK_DIRECTORY/trunk/plexnet'
+alias cdpp='cd $WORK_DIRECTORY/code/pypy/dist/pypy'
+alias cdt='cd $WORK_DIRECTORY/trunk'
 alias cd-='cd -'
 alias chx='chmod +x'
-alias em='/Applications/Aquamacs\ Emacs.app/Contents/MacOS/bin/emacsclient -n'
+alias em='/Applications/Aquamacs.app/Contents/MacOS/bin/emacsclient -n'
+alias emacs='/Applications/Aquamacs.app/Contents/MacOS/Aquamacs'
+alias emcompile="/Applications/Aquamacs.app/Contents/MacOS/Aquamacs -nw -batch -f batch-byte-compile"
 alias emnew='em /Users/tav/work/documentation/asktav/new.txt'
+alias ffind="find * -type f"
 alias github='git push origin master'
+alias gitupstream='git push upstream master'
 alias gitpages='git push origin gh-pages'
 alias ipython='ipython -nobanner'
 alias ipy='ipython2.6 -nobanner'
@@ -46,10 +59,13 @@ alias l='ls -G'
 alias la='ls -a'
 alias lk='security lock-keychain'
 alias ll='ls -al'
-alias manlinux='export MANPATH=~/xavier/code/libevent/doc/linux-man-pages-2.68 ; man'
-alias manbsd='export MANPATH=~/xavier/code/libevent/doc/freebsd-man-pages-6.2 ; man'
+alias localpy='source ~/.virtualenv/bin/activate'
+alias manlinux='export MANPATH=/Users/tav/xavier/code/libevent/doc/linux-man-pages-2.68 ; man'
+alias manbsd='export MANPATH=/Users/tav/xavier/code/libevent/doc/freebsd-man-pages-6.2 ; man'
 alias manosx='export MANPATH=""; man'
 alias mkee='mkdir doc svn release temp'
+# alias mplayer='/Applications/MPlayer\ OSX\ Extended.app/Contents/Resources/External_Binaries/mplayer.app/Contents/MacOS/mplayer'
+alias fmplayer='mplayer -forceidx'
 alias p='cd ..'
 alias pp='cd ../..'
 alias ppp='cd ../../..'
@@ -59,16 +75,12 @@ alias resetcolour='/System/Library/Frameworks/ApplicationServices.framework/Vers
 alias rmrf='rm -rf'
 alias rmsvn='rm -rf .svn; rm -rf */.svn; rm -rf */*/.svn; rm -rf */*/*/.svn; rm -rf */*/*/*/.svn'
 alias screen='screen -e^Ff'
+alias sha256='shasum -a 256'
 alias svnchange='svn status | grep -v "^[?XP]" | grep -v "^$"'
 alias svnstatus='svn status"'
 alias untar='tar xzvf'
 alias vi='vim'
 alias xterm="xterm -bg black -fg white -en UTF-8"
-
-# yatiblog aliases
-alias sitetav='yatiblog /Users/tav/silo/blog --authors=~/work/documentation/CREDITS.txt'
-alias sitesofia='yatiblog /Users/tav/silo/sofia-blog --authors=~/work/documentation/CREDITS.txt'
-alias siteplexnet='yatiblog /Users/tav/work/documentation --authors=~/work/documentation/CREDITS.txt --package=plexnet'
 
 # environment variables
 export CLICOLOR=1
@@ -80,9 +92,12 @@ export LSCOLORS=ExFxCxDxBxegedabagacad
 export LSCOLORS=GxCxCxDxBxegedabagacad
 export LSCOLORS=GxBxExDxCxegedabagacad
 
+# 2011-variant
+export LSCOLORS=gxbxexdxcxegedabagacad
+
 # http://www.macosxhints.com/article.php?story=20031025162727485
 
-export PATH=~/.local/bin:/Users/tav/silo/scripts:$PATH
+export PATH=/opt/local/bin:/opt/local/sbin:/Users/tav/silo/scripts:$PATH
 export EDITOR=nano
 export PYTHONPATH=~/.local/py-packages
 export PYTHONSTARTUP=~/.pythonrc
@@ -93,5 +108,15 @@ export PYTHONSTARTUP=~/.pythonrc
 # <deltab> normal=$'\e[m'
 # <deltab> you can use ${red}woohoo!${normal} to avoid spaces
 
-export PLEXNET_ROOT="/Users/tav/work"
-source $PLEXNET_ROOT/environ/startup/plexnetenv.sh install
+#export PLEXNET_ROOT="/Users/tav/work"
+#source $PLEXNET_ROOT/environ/startup/plexnetenv.sh install
+
+export DYLD_FALLBACK_LIBRARY_PATH=/Users/tav/.local/lib:$DYLD_FALLBACK_LIBRARY_PATH
+
+source /usr/local/git/contrib/completion/git-completion.bash 
+source /Users/tav/silo/ampify/environ/ampenv.sh
+
+source ~/.local/z.sh
+source ~/.local/hg-bash-completion
+
+# complete -o bashdefault -o default -o nospace -C '/usr/local/bin/gflags_completions.sh --tab_completion_columns $COLUMNS' snappy_unittest

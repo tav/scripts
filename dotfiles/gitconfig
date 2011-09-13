@@ -1,7 +1,35 @@
 [user]
 	email = tav@espians.com
 	name = tav
+[alias]
+	graph = log --date=\"short\" --format=\"%C(yellow)%h%Creset [%cN] %C(white)%ad%Creset %s\" --graph
+	graph-old = log --pretty=oneline --graph
+	filelog = log --pretty=oneline --no-merges --
+	st = status
+	z-branchdifflog = log master..someotherbranch --pretty=oneline
+	z-genpatch = format-patch origin/master
+	z-revertbutkeepworkingtree = reset --soft HEAD^
+	z-reviewchanges = log -p ORIG_HEAD.. some/path some/other/path
+	z-showbranch = show-branch
+	z-pseudopull = !"git fetch origin -v; git fetch upstream -v; git merge upstream/master"
+[ampify]
+	branch-build = true
+[blame]
+	date = short
 [color]
 	diff = auto
 	status = auto
 	branch = auto
+	interactive = auto
+	ui = auto
+[core]
+	webKitBranchBuild = true
+[diff]
+	ignoreSubmodules = dirty
+[github]
+	user = tav
+	token = 0f8922a5bf3e8a0aace68d3890ab077e
+[push]
+	default = matching
+[receive]
+	denyDeleteCurrent = ignore
